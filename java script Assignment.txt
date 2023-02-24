@@ -1,0 +1,54 @@
+const data = [
+  { "schedule_time": "2021-11-19 12:23:14", "slot": "L", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-18 11:34:22", "slot": "L", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-19 15:44:32", "slot": "D", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-20 07:12:56", "slot": "L", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-19 20:11:05", "slot": "D", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-20 16:55:43", "slot": "L", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-20 18:35:11", "slot": "D", "item_date": "2021-11-21" },
+  { "schedule_time": "2021-11-21 09:23:45", "slot": "L", "item_date": "2021-11-21" }
+];
+
+const schedules = data.map(row => ({
+  schedule_time: new Date(row.schedule_time),
+  item_date: new Date(row.item_date),
+  slot: row.slot
+}));
+
+const item_date = new Date('2021-11-21');
+
+const schedule_counts = {};
+schedules
+  .filter(schedule => schedule.item_date.getTime() === item_date.getTime())
+  .forEach(schedule => {
+    const schedule_date = schedule.schedule_time.toISOString().slice(0, 10);
+    const schedule_slot = schedule.slot;
+    const schedule_time = schedule.schedule_time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!schedule_counts[schedule_date]) {
+      schedule_counts[schedule_date] = { L: [0, 0, 0, 0], D: [0, 0, 0, 0] };
+    }
+    const slot_index = Math.floor(schedule.schedule_time.getHours() / 3);
+    schedule_counts[schedule_date][schedule_slot][slot_index]++;
+  });
+
+const dates = [item_date];
+for (let i = 1; i < 5; i++) {
+  const date = new Date(item_date);
+  date.setDate(date.getDate() - i);
+  dates.unshift(date);
+}
+
+const chartData = dates.map(date => {
+  const dateStr = date.toISOString().slice(0, 10);
+  const counts = schedule_counts[dateStr];
+  const data = [
+    { time: '9am to 12pm', L: counts?.L[0] || 0, D: counts?.D[0] || 0 },
+    { time: '12pm to 3pm', L: counts?.L[1] || 0, D: counts?.D[1] || 0 },
+    { time: '3pm to 6pm', L: counts?.L[2] || 0, D: counts?.D[2] || 0 },
+    { time: '6pm to 9pm', L: counts?.L[3] || 0, D: counts?.D[3] || 0 },
+];
+return { date: dateStr, data };
+});
+
+console.log(chartData);
+
